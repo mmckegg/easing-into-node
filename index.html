@@ -1,0 +1,1142 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <title>Easing into Node</title>
+  <style type="text/css">
+    body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #222;
+  background-color: #f7f7f7;
+  font-size: 100%;
+}
+
+.slide {
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0; right: 0;
+}
+
+.slide-content {
+  width: 800px;
+  height: 600px;
+  overflow: hidden;
+  margin: 80px auto 0 auto;
+  padding: 30px;
+
+  font-weight: 200;
+  font-size: 200%;
+  line-height: 1.375;
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+
+.arrow {
+  width: 0; height: 0;
+  border: 30px solid #333;
+  float: left;
+  margin-right: 30px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.prev {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+
+  border-left-width: 0;
+  border-right-width: 50px;
+}
+
+.next {
+  border-top-color: transparent;
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+
+  border-left-width: 50px;
+  border-right-width: 0;
+}
+
+.prev:hover {
+  border-right-color: #888;
+  cursor: pointer;
+}
+
+.next:hover {
+  border-left-color: #888;
+  cursor: pointer;
+}
+
+h1 {
+  font-size: 300%;
+  line-height: 1.2;
+  text-align: center;
+  margin: 170px 0 0;
+}
+
+h2 {
+  font-size: 100%;
+  line-height: 1.2;
+  margin: 5px 0;
+  text-align: center;
+  font-weight: 200;
+}
+
+h3 {
+  font-size: 140%;
+  line-height: 1.2;
+  border-bottom: 1px solid #aaa;
+  margin: 0;
+  padding-bottom: 15px;
+}
+
+ul {
+  padding: 20px 0 0 60px;
+  font-weight: 200;
+  line-height: 1.375;
+}
+
+.author h1 {
+  font-size: 170%;
+  font-weight: 200;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.author h3 {
+  font-weight: 100;
+  text-align: center;
+  font-size: 95%;
+  border: none;
+}
+
+a {
+  text-decoration: none;
+  color: #44a4dd;
+}
+
+a:hover {
+  color: #66b5ff;
+}
+
+pre {
+  font-size: 60%;
+  line-height: 1.3;
+}
+
+.progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 3px;
+  background-color: #b4b4b4;
+
+  -webkit-transition: width 0.05s ease-out;
+  -moz-transition: width 0.05s ease-out;
+  -o-transition: width 0.05s ease-out;
+  transition: width 0.05s ease-out;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 850px) {
+
+  body {
+    font-size: 70%;
+  }
+
+  .slide-content {
+    width: auto;
+  }
+
+  img {
+    width: 100%;
+  }
+
+  h1 {
+    margin-top: 120px;
+  }
+
+  .prev, .prev:hover {
+    border-right-color: rgba(135, 135, 135, 0.5);
+  }
+
+  .next, .next:hover {
+    border-left-color: rgba(135, 135, 135, 0.5);
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 50%;
+    overflow: hidden;
+  }
+
+  .slide-content {
+    padding: 10px;
+    margin-top: 10px;
+    height: 340px;
+  }
+
+  h1 {
+    margin-top: 50px;
+  }
+
+  ul {
+    padding-left: 25px;
+  }
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+  }
+
+  @page {
+    size: letter;
+  }
+
+  .hidden {
+    display: inline;
+  }
+
+  html {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  body {
+    margin: 0 auto !important;
+    border: 0;
+    padding: 0;
+    float: none !important;
+    overflow: visible;
+    background: none !important;
+    font-size: 52%;
+  }
+
+  .progress, .controls {
+    display: none;
+  }
+
+  .slide {
+    position: static;
+  }
+
+  .slide-content {
+    border: 1px solid #222;
+    margin-top: 0;
+    margin-bottom: 40px;
+    height: 3.5in;
+    overflow: visible;
+  }
+
+  .slide:nth-child(even) {
+    /* 2 slides per page */
+    page-break-before: always;
+  }
+}
+
+/*
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+*/
+
+code, pre {
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  overflow: auto;
+  padding: 6px 10px;
+}
+
+code {
+  padding: 0 5px;
+}
+
+pre>code {
+  margin: 0; padding: 0;
+  border: none;
+  background: transparent;
+}
+
+pre .comment,
+pre .template_comment,
+pre .diff .header,
+pre .javadoc {
+  color: #998;
+  font-style: italic
+}
+
+pre .keyword,
+pre .css .rule .keyword,
+pre .winutils,
+pre .javascript .title,
+pre .nginx .title,
+pre .subst,
+pre .request,
+pre .status {
+  color: #333;
+  font-weight: bold
+}
+
+pre .number,
+pre .hexcolor,
+pre .ruby .constant {
+  color: #099;
+}
+
+pre .string,
+pre .tag .value,
+pre .phpdoc,
+pre .tex .formula {
+  color: #d14
+}
+
+pre .title,
+pre .id {
+  color: #900;
+  font-weight: bold
+}
+
+pre .javascript .title,
+pre .lisp .title,
+pre .clojure .title,
+pre .subst {
+  font-weight: normal
+}
+
+pre .class .title,
+pre .haskell .type,
+pre .vhdl .literal,
+pre .tex .command {
+  color: #458;
+  font-weight: bold
+}
+
+pre .tag,
+pre .tag .title,
+pre .rules .property,
+pre .django .tag .keyword {
+  color: #000080;
+  font-weight: normal
+}
+
+pre .attribute,
+pre .variable,
+pre .lisp .body {
+  color: #008080
+}
+
+pre .regexp {
+  color: #009926
+}
+
+pre .class {
+  color: #458;
+  font-weight: bold
+}
+
+pre .symbol,
+pre .ruby .symbol .string,
+pre .lisp .keyword,
+pre .tex .special,
+pre .prompt {
+  color: #990073
+}
+
+pre .built_in,
+pre .lisp .title,
+pre .clojure .built_in {
+  color: #0086b3
+}
+
+pre .preprocessor,
+pre .pi,
+pre .doctype,
+pre .shebang,
+pre .cdata {
+  color: #999;
+  font-weight: bold
+}
+
+pre .deletion {
+  background: #fdd
+}
+
+pre .addition {
+  background: #dfd
+}
+
+pre .diff .change {
+  background: #0086b3
+}
+
+pre .chunk {
+  color: #aaa
+}
+
+h1 {
+  font-size: 180%;
+}
+
+.slide-content {
+  margin: 10px auto 0 auto;
+}
+
+ul {
+  padding-top: 0;
+}
+  </style>
+</head>
+<body>
+    <div class="progress">
+    <div class="progress-bar"></div>
+  </div>
+
+  <div class="slide" id="slide-1">
+    <section class="slide-content"><h1 id="easing-into-node">Easing into Node</h1>
+<h2 id="the-slippery-slope">the slippery slope</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-2">
+    <section class="slide-content"><h3 id="why-use-node-">Why Use Node?</h3>
+<ul>
+<li><strong>One less language</strong> to think about</li>
+<li>potential for <strong>sharing client and server code</strong></li>
+<li>the <strong>abstactions</strong> are in the right place</li>
+<li><strong>best module system</strong> for writing modular apps</li>
+<li><strong>npm</strong> - lego for your codes</li>
+<li><strong>everything is async</strong> - great for the emerging realtime web</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-3">
+    <section class="slide-content"><p><strong>We have an existing RoR app,</strong> but we want:</p>
+<ul>
+<li>Realtime push updating</li>
+<li>Client-side JS code to be more modular and use packages from npm.</li>
+<li>Rendering of our templates on both server and client</li>
+<li>Posting data to cloud services but avoid waiting for the request to finish</li>
+</ul>
+<p><strong>Rewrite in Node.js?</strong></p>
+<p>Probably a bad idea. But can we augment our existing app using some Node hackons?</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-4">
+    <section class="slide-content"><h1 id="the-event-pusher">The Event Pusher</h1>
+<h2 id="-existing-rails-app-we-want-realtime-updates"><strong>Existing rails app:</strong> We want realtime updates</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-5">
+    <section class="slide-content"><h2 id="broadcast-changes-to-records">Broadcast changes to records</h2>
+<pre><code class="lang-ruby"><span class="class"><span class="keyword">class</span> <span class="title">Post</span> <span class="inheritance">&lt; <span class="parent">ActiveRecord::Base</span></span></span>
+  has_many <span class="symbol">:comments</span>
+  after_save <span class="symbol">:notify_change</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">notify_change</span></span>
+    <span class="constant">EventPusher</span>.push(<span class="string">"post_<span class="subst">#{<span class="keyword">self</span>.id}</span>"</span>, <span class="keyword">self</span>)
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span></code></pre>
+<pre><code class="lang-ruby"><span class="class"><span class="keyword">class</span> <span class="title">Comment</span> <span class="inheritance">&lt; <span class="parent">ActiveRecord::Base</span></span></span>
+  belongs_to <span class="symbol">:post</span>
+  after_save <span class="symbol">:notify_change</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">notify_change</span></span>
+    <span class="constant">EventPusher</span>.push(<span class="string">"post_<span class="subst">#{<span class="keyword">self</span>.post_id}</span>"</span>, <span class="keyword">self</span>)
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-6">
+    <section class="slide-content"><h2 id="the-event-pusher">The Event Pusher</h2>
+<pre><code class="lang-ruby"><span class="class"><span class="keyword">class</span> <span class="title">EventPusher</span></span>
+
+  <span class="constant">ENDPOINT</span> = <span class="constant">URI</span>.parse(<span class="string">'http://localhost:9999/push-event'</span>)
+
+  <span class="function"><span class="keyword">def</span> <span class="title"><span class="keyword">self</span></span>.<span class="title">push</span><span class="params">(obj)</span></span>
+    data = { 
+      <span class="string">'object'</span> =&gt; obj.attributes, <span class="string">'type'</span> =&gt; obj.<span class="keyword">class</span>.name, 
+      <span class="string">'channel'</span> =&gt; <span class="string">"post_<span class="subst">#{<span class="keyword">self</span>.post_id}</span>"</span> 
+    }
+
+    http = <span class="constant">Net::HTTP::Persistent</span>.new(<span class="string">'event_pusher'</span>)
+    http.open_timeout = <span class="number">1</span>
+    http.read_timeout = <span class="number">10</span>
+
+    req = <span class="constant">Net::HTTP::Post</span>.new(<span class="constant">ENDPOINT</span>.path, <span class="string">'content-type'</span> =&gt; <span class="string">'application/json'</span>)
+    req.body = data.to_json
+
+    http.request(<span class="constant">ENDPOINT</span>, req)
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-7">
+    <section class="slide-content"><h2 id="node-server-js">node/server.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> http = require(<span class="string">'http'</span>)
+<span class="keyword">var</span> createPusher = require(<span class="string">'./event-pusher'</span>)
+<span class="keyword">var</span> authorize = require(<span class="string">'./authorize'</span>)
+
+<span class="keyword">var</span> socketServer = http.createServer()
+<span class="keyword">var</span> pushEvent = createPusher(socketServer, authorize)
+
+<span class="keyword">var</span> jsonBody = require(<span class="string">"body/json"</span>)
+
+<span class="keyword">var</span> privateServer = require(<span class="string">'http'</span>).createServer(<span class="keyword">function</span>(req,res){
+  <span class="keyword">if</span> (req.url === <span class="string">'/push-event'</span>){
+
+    jsonBody(req, <span class="keyword">function</span>(err, body){
+      res.writeHead(<span class="number">200</span>)
+      res.end()
+      pushEvent(JSON.parse(body))
+    })
+
+  }
+})
+
+privateServer.listen(<span class="number">9999</span>, <span class="string">'localhost'</span>)
+socketServer.listen(<span class="number">8080</span>) <span class="comment">// public port</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-8">
+    <section class="slide-content"><h2 id="node-authorize-js">node/authorize.js</h2>
+<pre><code class="lang-javascript">
+module.exports = <span class="keyword">function</span>(handshakeData, cb){
+
+  <span class="comment">// insert custom authentication logic here!</span>
+
+  cb(<span class="literal">null</span>, { 
+    channel: handshakeData.channel 
+  })
+
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-9">
+    <section class="slide-content"><h2 id="node-event-pusher-js">node/event-pusher.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> shoe = require(<span class="string">'shoe'</span>)
+<span class="keyword">var</span> handshake = require(<span class="string">'./handshake'</span>)
+
+module.exports = <span class="keyword">function</span>(server, authorize){
+
+  <span class="keyword">var</span> channels = {}
+
+  shoe(<span class="keyword">function</span>(socket){
+
+    socket.once(<span class="string">'data'</span>, <span class="keyword">function</span>(data){
+      handshake(socket, data, channels)
+    })
+
+  }).install(server, <span class="string">'/'</span>)
+
+  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> <span class="title">push</span><span class="params">(event)</span>{</span>
+    <span class="keyword">if</span> (channels[event.channel]){
+      channels[event.channel].forEach(<span class="keyword">function</span>(socket){
+        socket.write(JSON.stringify(event))
+      })
+    }
+  }
+
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-10">
+    <section class="slide-content"><h2 id="node-handshake-js">node/handshake.js</h2>
+<pre><code class="lang-javascript">module.exports = <span class="keyword">function</span>(socket, data, channels){
+
+  <span class="keyword">var</span> data = JSON.parse(data)
+
+  authorize(data, <span class="keyword">function</span>(err, handshakeData){
+
+    <span class="keyword">if</span> (!err &amp;&amp; handshakeData){
+
+      <span class="keyword">var</span> channel = handshakeData.channel
+      socket.handshakeData = handshakeData
+      channels[channel] = channels[channel] || []
+      channels[channel].push(socket)
+
+      socket.on(<span class="string">'end'</span>, <span class="keyword">function</span>(){
+        <span class="keyword">var</span> index = channels[channel].indexOf(socket)
+        channels[channel].splice(index, <span class="number">1</span>)
+      })
+
+    } <span class="keyword">else</span> { <span class="comment">// reject connection</span>
+      socket.close()
+    }
+
+  })
+
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-11">
+    <section class="slide-content"><h2 id="client-js">client.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> shoe = require(<span class="string">'shoe'</span>)
+<span class="keyword">var</span> ws = shoe(<span class="string">'http://localhost:8080/'</span>)
+
+<span class="keyword">var</span> handshake = {
+  channel: <span class="string">'post_'</span> + window.context.postId
+}
+
+ws.write(JSON.stringify(handshake))
+
+ws.on(<span class="string">'data'</span>, <span class="keyword">function</span>(data){
+  <span class="keyword">var</span> event = JSON.parse(data)
+
+  <span class="comment">// insert page update code here!</span>
+  updatePage(event)
+})</code></pre>
+<pre><code class="lang-bash"><span class="comment"># bundle this file up with browserify and send to client!</span>
+$ browserify client.js -o client-bundled.js</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-12">
+    <section class="slide-content"><h1 id="modules-in-the-browser">Modules in the Browser</h1>
+<h2 id="-existing-client-side-javascript-we-want-future-code-to-be-more-modular-and-use-packages-from-npm-"><strong>Existing client-side JavaScript:</strong> We want future code to be more modular and use packages from npm.</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-13">
+    <section class="slide-content"><p><strong>Node is just JavaScript</strong> with a cool module loader and some useful built-ins.</p>
+<p><strong>Our client side code is (probably) JavaScript.</strong> Maybe we can&#39;t have Node on our server right now, but what if we could <strong>share</strong> some of the Node niceties with the browser...</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-14">
+    <section class="slide-content"><p><strong>Browserify</strong> (<a href="http://browserify.org">http://browserify.org</a>) lets you require node modules in the browser by bundling up all of your dependencies.</p>
+<ul>
+<li>use many of the tens of thousands of modules on <a href="http://npmjs.org">npm</a> in the browser</li>
+<li><code>process.nextTick()</code>, <code>__dirname</code>, and <code>__filename</code> node-isms work</li>
+<li>get browser versions of the node core libraries <code>events</code>, <code>stream</code>, <code>path</code>, <code>url</code>, <code>assert</code>, <code>buffer</code>, <code>util</code>, <code>querystring</code>, <code>http</code>, <code>vm</code>, and <code>crypto</code> when you <code>require()</code> them</li>
+</ul>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-15">
+    <section class="slide-content"><p><strong>You can use browserify along side your existing client-side code.</strong></p>
+<pre><code class="lang-xml"><span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">'/javascripts/jquery.js'</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">'/javascripts/application.js'</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">'/javascripts/backbone.js'</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">'/javascripts/browserify-bundle.js'</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></code></pre>
+<p>But things are a lot nicer if all of your code is bundled with browserify.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-16">
+    <section class="slide-content"><p>Create a <code>clientside/global/index.js</code> that requires all of your old client side code. </p>
+<pre><code>- MyApp
+| - application
+| - public
+| - lib
+| - clientside
+  | - global &lt;- move our old code in here
+    | - models.js 
+    | - application.js
+    | - jquery.js
+  | - index.js &lt;- browserify entry</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-17">
+    <section class="slide-content"><h2 id="clientside-global-index-js">clientside/global/index.js</h2>
+<pre><code class="lang-javascript">require(<span class="string">'./jquery.js'</span>)
+require(<span class="string">'./application.js'</span>)
+require(<span class="string">'./models.js'</span>)</code></pre>
+<p><strong>Specify all of the files you want to include</strong> &quot;old-school-style&quot;.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-18">
+    <section class="slide-content"><h2 id="clientside-index-js">clientside/index.js</h2>
+<pre><code class="lang-javascript">
+<span class="comment">// require legacy global code</span>
+require(<span class="string">'./global'</span>)
+
+<span class="comment">// our new stuff</span>
+<span class="keyword">var</span> behave = require(<span class="string">'dom-behavior'</span>)
+
+behave({
+  <span class="string">'link'</span>: <span class="keyword">function</span>(element){
+    element.onclick = <span class="keyword">function</span>(){
+      window.location = element.getAttribute(<span class="string">'data-href'</span>)
+    }
+  } 
+})</code></pre>
+<p><strong>We&#39;ll bundle this file using browserify.</strong> All required files will also be recursively included in the bundle.</p>
+<pre><code class="lang-bash">$ browserify clientside -o public/bundle.js</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-19">
+    <section class="slide-content"><h2 id="clientside-global-application-js">clientside/global/application.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> deepEqual = require(<span class="string">'deep-equal'</span>)
+
+window.Application = {
+  fancyHelperFunctions: <span class="keyword">function</span>(){
+    <span class="comment">// nasty, nasty old code!</span>
+  },
+  another: <span class="keyword">function</span>(a, b){
+    <span class="keyword">return</span> deepEqual(a, b)
+  }
+}</code></pre>
+<p><strong>Browserify wraps every file in a closure</strong> so any global variables will have to be on <code>window</code> otherwise they won&#39;t be accessible anymore. </p>
+<p>But once you&#39;ve done this, you&#39;ll be able to <strong>require modules straight from npm</strong> in your code.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-20">
+    <section class="slide-content"><h2 id="_clientside-application-js_"><em>clientside/application.js</em></h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> deepEqual = require(<span class="string">'deep-equal'</span>)
+
+module.exports = { <span class="comment">// &lt;-- FOR EXTRA CREDIT: export instead of using globals</span>
+  fancyHelperFunctions: <span class="keyword">function</span>(thing, whatsit){
+    <span class="comment">// nasty, nasty old code!</span>
+  },
+  another: <span class="keyword">function</span>(a, b){
+    <span class="keyword">return</span> deepEqual(a, b)
+  }
+}</code></pre>
+<p>Depending on how your client side code works, it may be easy enough to rewrite parts of it to use <code>module.exports</code> and <code>var mod = require(&#39;module&#39;)</code>.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-21">
+    <section class="slide-content"><h2 id="clientside-global-models-js">clientside/global/models.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> Application = require(<span class="string">'../application.js'</span>) <span class="comment">// &lt;-- instead of globals</span>
+
+Application.registerModel(<span class="string">'Post'</span>, {
+  <span class="comment">// ...</span>
+})
+
+Application.registerModel(<span class="string">'Comment'</span>, {
+  <span class="comment">// ...</span>
+})</code></pre>
+<p>Once you have the initial closure issues out of the way, the rest of the rewriting can just happen as it&#39;s needed.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-22">
+    <section class="slide-content"><p><strong>Some more tips</strong></p>
+<p>Use <a href="https://www.npmjs.org/package/watchify">watchify</a> instead of the browserify command to automatically <strong>rebuild</strong> the bundle when you change any of the code.</p>
+<p>Use the <code>-d</code> flag when developing to enable <strong>source map</strong> generation. Web Inspector will now show you the original file line numbers and code.</p>
+<pre><code class="lang-bash">$ watchify clientside -d -o public/bundle-debug.js</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-23">
+    <section class="slide-content"><h1 id="sharing-code">Sharing Code</h1>
+<h2 id="-existing-rails-app-we-want-to-render-our-templates-on-both-server-and-client"><strong>Existing rails app:</strong> We want to render our templates on both server and client</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-24">
+    <section class="slide-content"><h2 id="-we-ll-need-to-generate-our-views-in-javascript-"><strong>We&#39;ll need to generate our views in JavaScript.</strong></h2>
+<h2 id="-">⟱</h2>
+<h2 id="-rails-handle-request-controller-model-generate-json-context"><strong>Rails:</strong> Handle request (controller/model) - generate JSON Context</h2>
+<h2 id="-">⇣</h2>
+<h2 id="-js-render-the-view"><strong>JS:</strong> Render the view</h2>
+<h2 id="-">⇣</h2>
+<h2 id="-rails-serve-to-client"><strong>Rails:</strong> Serve to client</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-25">
+    <section class="slide-content"><h2 id="-how-should-we-pass-the-data-to-javascript-"><strong>How should we pass the data to JavaScript?</strong></h2>
+<p>We could run a Node server in the background and fire off http requests (containing JSON) which respond with HTML, which we then send to client.</p>
+<p>But that may be asking for trouble. <strong>What if the Node process goes down?</strong></p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-26">
+    <section class="slide-content"><h2 id="-another-fun-option-embed-v8-in-ruby"><strong>Another fun option:</strong> Embed V8 in Ruby</h2>
+<pre><code class="lang-ruby">gem <span class="string">'therubyracer'</span>, <span class="string">'~&gt; 0.12.1'</span></code></pre>
+<p><strong>therubyracer</strong> (<a href="https://github.com/cowboyd/therubyracer">https://github.com/cowboyd/therubyracer</a>) lets you eval JS code from inside Ruby.</p>
+<p>We can use <a href="https://browserify.org">browserify</a> to generate a bundle specifically for our server, containing code needed to render templates.</p>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-27">
+    <section class="slide-content"><h2 id="app-controllers-post_controller-rb">app/controllers/post_controller.rb</h2>
+<pre><code class="lang-ruby"><span class="class"><span class="keyword">class</span> <span class="title">PostController</span> <span class="inheritance">&lt; <span class="parent">ApplicationController</span></span></span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">index</span></span>
+    posts = <span class="constant">Post</span>.all
+
+    html = <span class="constant">ViewRenderer</span>.render(
+      <span class="symbol">:posts</span> =&gt; posts.map(&amp;<span class="symbol">:public_attributes</span>),
+      <span class="symbol">:channel</span> =&gt; <span class="string">'posts'</span>,
+      <span class="symbol">:view</span> =&gt; <span class="string">'home'</span>
+    )
+
+    render <span class="symbol">:text</span> =&gt; html, <span class="symbol">:layout</span> =&gt; <span class="keyword">true</span>
+  <span class="keyword">end</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">show</span></span>
+    post = <span class="constant">Post</span>.find(params[<span class="symbol">:id</span>])
+
+    html = <span class="constant">ViewRenderer</span>.render(
+      <span class="symbol">:post</span> =&gt; post.public_attributes,
+      <span class="symbol">:comments</span> =&gt; post.comments.map(&amp;<span class="symbol">:public_attributes</span>),
+      <span class="symbol">:channel</span> =&gt; <span class="string">"post_<span class="subst">#{post.id}</span>"</span>,
+      <span class="symbol">:view</span> =&gt; <span class="string">'post'</span>
+    )
+
+    render <span class="symbol">:text</span> =&gt; html, <span class="symbol">:layout</span> =&gt; <span class="keyword">true</span>
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-28">
+    <section class="slide-content"><h2 id="lib-view_renderer-rb">lib/view_renderer.rb</h2>
+<pre><code class="lang-ruby"><span class="class"><span class="keyword">class</span> <span class="title">ViewRenderer</span></span>
+
+  <span class="variable">@js</span> = <span class="constant">V8::Context</span>.new
+  <span class="variable">@js</span>.load(<span class="string">"<span class="subst">#{<span class="constant">Rails</span>.root}</span>/build/serverside.js"</span>)
+
+
+  <span class="function"><span class="keyword">def</span> <span class="title"><span class="keyword">self</span></span>.<span class="title">render</span><span class="params">(data)</span></span>
+    json = <span class="constant">Oj</span>.dump(data, <span class="symbol">:mode</span> =&gt; <span class="symbol">:compat</span>)
+    html = <span class="variable">@js</span>.eval(<span class="string">"render(<span class="subst">#{json}</span>)"</span>)
+
+    <span class="comment"># add a script tag containing the data needed to render page</span>
+    <span class="string">"&lt;script type='application/json' id='bindingData'&gt;<span class="subst">#{json}</span>&lt;/script&gt;"</span> + html
+  <span class="keyword">end</span>
+
+<span class="keyword">end</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-29">
+    <section class="slide-content"><h2 id="serverside-index-js">serverside/index.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> renderView = require(<span class="string">'./views'</span>)
+
+global.render = <span class="keyword">function</span>(json){
+  <span class="keyword">var</span> data = JSON.parse(json)
+  <span class="keyword">return</span> renderView(data)
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-30">
+    <section class="slide-content"><h2 id="serverside-views-index-js">serverside/views/index.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> View = require(<span class="string">'rincewind'</span>)
+<span class="keyword">var</span> get = require(<span class="string">'onward'</span>)
+
+<span class="keyword">var</span> views = {
+  <span class="string">'home'</span>: View(__dirname + <span class="string">'/home.html'</span>),
+  <span class="string">'post'</span>: View(__dirname + <span class="string">'/post.html'</span>)
+}
+
+module.exports = <span class="function"><span class="keyword">function</span> <span class="title">renderView</span><span class="params">(data, viewName)</span>{</span>
+  <span class="keyword">var</span> render = views[viewName]
+  <span class="keyword">if</span> (render){
+    <span class="keyword">return</span> render({
+      data: data, 
+      get: <span class="keyword">function</span>(query){
+        <span class="keyword">return</span> get(query, <span class="keyword">this</span>)
+      }
+    })
+  }
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-31">
+    <section class="slide-content"><h2 id="serverside-views-post-html">serverside/views/post.html</h2>
+<pre><code class="lang-xml"><span class="pi">&lt;? require './markdown.js' as markdown ?&gt;</span>
+<span class="pi">&lt;? require './_comment.html' as comment ?&gt;</span>
+<span class="pi">&lt;? require './formatters/date.js' as formatDate ?&gt;</span>
+
+<span class="tag">&lt;<span class="title">article</span> <span class="attribute">class</span>=<span class="value">'Post'</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">header</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">h1</span> <span class="attribute">t:bind</span>=<span class="value">'post.title'</span> /&gt;</span>
+    <span class="tag">&lt;<span class="title">p</span>&gt;</span>Posted on <span class="tag">&lt;<span class="title">span</span> <span class="attribute">t:bind</span>=<span class="value">'post.date:formatDate(full)'</span> /&gt;</span><span class="tag">&lt;/<span class="title">p</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">header</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">div</span> <span class="attribute">t:bind</span>=<span class="value">'post.description'</span> <span class="attribute">t:view</span>=<span class="value">'markdown'</span> /&gt;</span>
+
+  <span class="tag">&lt;<span class="title">aside</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">section</span> <span class="attribute">class</span>=<span class="value">'Comment'</span> <span class="attribute">t:repeat</span>=<span class="value">'comments'</span> <span class="attribute">t:view</span>=<span class="value">'comment'</span> /&gt;</span>
+  <span class="tag">&lt;/<span class="title">aside</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">article</span>&gt;</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-32">
+    <section class="slide-content"><h2 id="severside-views-_comment-html">severside/views/_comment.html</h2>
+<pre><code class="lang-xml"><span class="pi">&lt;? require './markdown.js' as markdown ?&gt;</span>
+
+<span class="tag">&lt;<span class="title">header</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">h1</span>&gt;</span><span class="tag">&lt;<span class="title">span</span> <span class="attribute">t:bind</span>=<span class="value">'.name'</span> /&gt;</span> says:<span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">header</span>&gt;</span>
+
+<span class="tag">&lt;<span class="title">div</span> <span class="attribute">t:bind</span>=<span class="value">'.body'</span> <span class="attribute">t:view</span>=<span class="value">'markdown'</span> /&gt;</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-33">
+    <section class="slide-content"><h2 id="serverside-views-markdown-js">serverside/views/markdown.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> marked = require(<span class="string">'marked'</span>)
+module.exports = <span class="keyword">function</span>(context){
+  <span class="comment">// return some html</span>
+  <span class="keyword">return</span> marked(context.source)
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-34">
+    <section class="slide-content"><h2 id="serverside-views-formatters-date-js">serverside/views/formatters/date.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> strftime = require(<span class="string">'strftime'</span>)
+<span class="keyword">var</span> relativeDate = require(<span class="string">'relative-date'</span>)
+
+module.exports = <span class="function"><span class="keyword">function</span> <span class="title">formatDate</span><span class="params">(input, format)</span>{</span>
+  <span class="keyword">if</span> (<span class="keyword">typeof</span> input === <span class="string">'string'</span>){
+    input = <span class="keyword">new</span> Date(input)
+  }
+
+  <span class="keyword">if</span> (format === <span class="string">'full'</span>){
+    <span class="keyword">return</span> strftime(<span class="string">'%d %B %y at %H:%M:%S'</span>, input)
+  } <span class="keyword">else</span> <span class="keyword">if</span> (format === <span class="string">'relative'</span>){
+    <span class="keyword">return</span> relativeDate(input)
+  } <span class="keyword">else</span> {
+    <span class="keyword">return</span> strftime(<span class="string">'%d %B %y'</span>, input)
+  }
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-35">
+    <section class="slide-content"><h2 id="clientside-index-js">clientside/index.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> domready = require(<span class="string">'domready'</span>)
+<span class="keyword">var</span> bind = require(<span class="string">'./bind'</span>)
+
+domready(<span class="keyword">function</span>(){
+  <span class="keyword">var</span> dataElement = document.getElementById(<span class="string">'bindingData'</span>)
+  <span class="keyword">var</span> rootElement = document.getElementById(<span class="string">'root'</span>)
+
+  <span class="keyword">var</span> data = JSON.parse(dataElement)
+  bind(root, window.data)
+})</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-36">
+    <section class="slide-content"><h2 id="clientside-bind-js">clientside/bind.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> subscribe = require(<span class="string">'./subscribe'</span>)
+<span class="keyword">var</span> renderView = require(<span class="string">'../serverside/views'</span>)
+<span class="keyword">var</span> become = require(<span class="string">'become'</span>)
+
+module.exports = <span class="function"><span class="keyword">function</span> <span class="title">bind</span><span class="params">(element, data)</span>{</span>
+  <span class="keyword">if</span> (data.channel){
+    subscribe({
+      channel: data.channel
+    }, <span class="keyword">function</span>(event){
+      <span class="keyword">if</span> (data.post &amp;&amp; event.type === <span class="string">'Post'</span>){
+        data.post = event.object
+      } <span class="keyword">else</span> <span class="keyword">if</span> (event.type === <span class="string">'Comment'</span>){
+        data.comments.push(event.object)
+      }
+      <span class="keyword">var</span> newHtml = renderView(data)
+      become(element, newHtml, {inner: <span class="literal">true</span>})
+    })
+  }
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-37">
+    <section class="slide-content"><h2 id="clientside-subscribe-js">clientside/subscribe.js</h2>
+<pre><code class="lang-javascript"><span class="keyword">var</span> shoe = require(<span class="string">'shoe'</span>)
+
+module.exports = <span class="keyword">function</span>(options, cb){
+  <span class="keyword">var</span> ws = shoe(<span class="string">'http://localhost:8080/'</span>)
+  ws.write(JSON.stringify(options))
+  ws.on(<span class="string">'data'</span>, <span class="keyword">function</span>(data){
+    <span class="keyword">var</span> event = JSON.parse(data)
+    cb(event)
+  })
+}</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-38">
+    <section class="slide-content"><h2 id="app-layouts-application-html-erb">app/layouts/application.html.erb</h2>
+<pre><code class="lang-xml"><span class="tag">&lt;<span class="title">html</span>&gt;</span>
+<span class="tag">&lt;<span class="title">head</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">title</span>&gt;</span>Blog - <span class="vbscript">&lt;%= @title %&gt;</span><span class="tag">&lt;/<span class="title">title</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">link</span> <span class="attribute">rel</span>=<span class="value">'stylesheet'</span> <span class="attribute">href</span>=<span class="value">'/bundle.css'</span> /&gt;</span>
+  <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">'/bundle.js'</span>&gt;</span><span class="javascript"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">head</span>&gt;</span>
+<span class="tag">&lt;<span class="title">body</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">header</span> <span class="attribute">class</span>=<span class="value">'SiteHeader'</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">h1</span>&gt;</span>My Blog<span class="tag">&lt;/<span class="title">h1</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">'Page'</span> <span class="attribute">id</span>=<span class="value">'root'</span>&gt;</span>
+      <span class="vbscript">&lt;%= yield %&gt;</span>
+    <span class="tag">&lt;/<span class="title">div</span>&gt;</span>
+  <span class="tag">&lt;/<span class="title">header</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">body</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">html</span>&gt;</span></code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-39">
+    <section class="slide-content"><h2 id="package-json">package.json</h2>
+<pre><code class="lang-json">{
+  "<span class="attribute">name</span>": <span class="value"><span class="string">"my-blog"</span></span>,
+  "<span class="attribute">scripts</span>": <span class="value">{
+    "<span class="attribute">watch</span>": <span class="value"><span class="string">"npm run watch-serverside &amp; npm run watch-clientside"</span></span>,
+    "<span class="attribute">watch-serverside</span>": <span class="value"><span class="string">"watchify serverside -d -o build/serverside.js"</span></span>,
+    "<span class="attribute">watch-clientside</span>": <span class="value"><span class="string">"watchify clientside -d -o public/javascripts/bundle.js"</span></span>,
+  }</span>,
+  "<span class="attribute">browserify</span>": <span class="value">{
+    "<span class="attribute">transform</span>": <span class="value">[<span class="string">"rincwind-precompile-transform"</span>]
+  }</span></span>,
+  "<span class="attribute">private</span>": <span class="value"><span class="literal">true</span></span>,
+  "<span class="attribute">devDependencies</span>": <span class="value">{
+    "<span class="attribute">browserify</span>": <span class="value"><span class="string">"^3.33.0"</span></span>,
+    "<span class="attribute">watchify</span>": <span class="value"><span class="string">"^0.6.3"</span></span>,
+    "<span class="attribute">rincewind-precompile-transform</span>": <span class="value"><span class="string">"^1.1.0"</span>
+  }</span></span>,
+  "<span class="attribute">dependencies</span>": <span class="value">{
+    "<span class="attribute">rincewind</span>": <span class="value"><span class="string">"^1.4.0"</span></span>,
+    "<span class="attribute">become</span>": <span class="value"><span class="string">"^1.2.2"</span></span>,
+    "<span class="attribute">onward</span>": <span class="value"><span class="string">"^0.1.0"</span></span>,
+    "<span class="attribute">domready</span>": <span class="value"><span class="string">"^1.0.4"</span></span>,
+    "<span class="attribute">...</span>": <span class="value"><span class="string">"..."</span>
+  }</span>
+}</span></code></pre>
+<pre><code class="lang-bash">$ npm run watch</code></pre>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-40">
+    <section class="slide-content"><h1 id="simple-event-queue">Simple Event Queue</h1>
+<h2 id="-existing-rails-app-we-want-to-upload-data-to-s3-but-don-t-want-to-wait-for-the-request-to-finish"><strong>Existing rails app:</strong> We want to upload data to S3 but don&#39;t want to wait for the request to finish</h2>
+</section>
+  </div>
+  <div class="slide hidden" id="slide-41">
+    <section class="slide-content"><div class="author">
+  <h1 class="name">Matt McKegg</h1>
+    <h3 class="twitter">
+      <a href="http://twitter.com/@MattMcKegg">@MattMcKegg</a>
+    </h3>
+    <h3 class="url">
+      <a href="https://github.com/mmckegg">https://github.com/mmckegg</a>
+    </h3>
+</div>
+</section>
+  </div>
+
+  <div class="controls">
+    <div class="arrow prev"></div>
+    <div class="arrow next"></div>
+  </div>
+
+
+  <script type="text/javascript">
+    /**
+ * Returns the current page number of the presentation.
+ */
+function currentPosition() {
+  return parseInt(document.querySelector('.slide:not(.hidden)').id.slice(6));
+}
+
+
+/**
+ * Navigates forward n pages
+ * If n is negative, we will navigate in reverse
+ */
+function navigate(n) {
+  var position = currentPosition();
+  var numSlides = document.getElementsByClassName('slide').length;
+
+  /* Positions are 1-indexed, so we need to add and subtract 1 */
+  var nextPosition = (position - 1 + n) % numSlides + 1;
+
+  /* Normalize nextPosition in-case of a negative modulo result */
+  nextPosition = (nextPosition - 1 + numSlides) % numSlides + 1;
+
+  document.getElementById('slide-' + position).classList.add('hidden');
+  document.getElementById('slide-' + nextPosition).classList.remove('hidden');
+
+  updateProgress();
+  updateURL();
+  updateTabIndex();
+}
+
+
+/**
+ * Updates the current URL to include a hashtag of the current page number.
+ */
+function updateURL() {
+  window.history.replaceState({} , null, '#' + currentPosition());
+}
+
+
+/**
+ * Sets the progress indicator.
+ */
+function updateProgress() {
+  var progressBar = document.querySelector('.progress-bar');
+
+  if (progressBar !== null) {
+    var numSlides = document.getElementsByClassName('slide').length;
+    var position = currentPosition() - 1;
+    var percent = (numSlides === 1) ? 100 : 100 * position / (numSlides - 1);
+    progressBar.style.width = percent.toString() + '%';
+  }
+}
+
+
+/**
+ * Removes tabindex property from all links on the current slide, sets
+ * tabindex = -1 for all links on other slides. Prevents slides from appearing
+ * out of control.
+ */
+function updateTabIndex() {
+  var allLinks = document.querySelectorAll('.slide a');
+  var position = currentPosition();
+  var currentPageLinks = document.getElementById('slide-' + position).querySelectorAll('a');
+  var i;
+
+  for (i = 0; i < allLinks.length; i++) {
+    allLinks[i].setAttribute('tabindex', -1);
+  }
+
+  for (i = 0; i < currentPageLinks.length; i++) {
+    currentPageLinks[i].removeAttribute('tabindex');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Update the tabindex to prevent weird slide transitioning
+  updateTabIndex();
+
+  // If the location hash specifies a page number, go to it.
+  var page = window.location.hash.slice(1);
+  if (page) {
+    navigate(parseInt(page) - 1);
+  }
+
+  document.onkeydown = function (e) {
+    var kc = e.keyCode;
+
+    // left, down, H, J, backspace, PgUp - BACK
+    // up, right, K, L, space, enter, PgDn - FORWARD
+    if (kc === 37 || kc === 40 || kc === 8 || kc === 72 || kc === 74 || kc === 33) {
+      navigate(-1);
+    } else if (kc === 38 || kc === 39 || kc === 13 || kc === 32 || kc === 75 || kc === 76 || kc === 34) {
+      navigate(1);
+    }
+  };
+
+  if (document.querySelector('.next') && document.querySelector('.prev')) {
+    document.querySelector('.next').onclick = function (e) {
+      e.preventDefault();
+      navigate(1);
+    };
+
+    document.querySelector('.prev').onclick = function (e) {
+      e.preventDefault();
+      navigate(-1);
+    };
+  }
+});
+
+
+  </script>
+</body>
+</html>
