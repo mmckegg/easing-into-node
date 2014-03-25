@@ -523,8 +523,8 @@ var views = {
   'post': View(__dirname + '/post.html')
 }
 
-module.exports = function renderView(data, viewName){
-  var render = views[viewName]
+module.exports = function renderView(data){
+  var render = views[data.view]
   if (render){
     return render({
       data: data, 

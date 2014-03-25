@@ -839,8 +839,8 @@ global.render = <span class="keyword">function</span>(json){
   <span class="string">'post'</span>: View(__dirname + <span class="string">'/post.html'</span>)
 }
 
-module.exports = <span class="function"><span class="keyword">function</span> <span class="title">renderView</span><span class="params">(data, viewName)</span>{</span>
-  <span class="keyword">var</span> render = views[viewName]
+module.exports = <span class="function"><span class="keyword">function</span> <span class="title">renderView</span><span class="params">(data)</span>{</span>
+  <span class="keyword">var</span> render = views[data.view]
   <span class="keyword">if</span> (render){
     <span class="keyword">return</span> render({
       data: data, 
