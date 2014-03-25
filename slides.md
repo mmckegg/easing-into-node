@@ -79,7 +79,8 @@ class EventPusher
 
   def self.push(obj)
     data = { 
-      'object' => obj.attributes, 'type' => obj.class.name, 
+      'object' => obj.attributes, 
+      'type' => obj.class.name, 
       'channel' => "post_#{self.post_id}" 
     }
 
@@ -158,7 +159,7 @@ module.exports = function(server, authorize){
   shoe(function(socket){
 
     socket.once('data', function(data){
-      handshake(socket, data, channels)
+      handshake(channels, socket, data, authorize)
     })
 
   }).install(server, '/')
@@ -179,7 +180,7 @@ module.exports = function(server, authorize){
 ## node/handshake.js
 
 ```javascript
-module.exports = function(socket, data, channels){
+module.exports = function(channels, socket, data, authorize){
 
   var data = JSON.parse(data)
 
@@ -232,6 +233,9 @@ ws.on('data', function(data){
 # bundle this file up with browserify and send to client!
 $ browserify client.js -o client-bundled.js
 ```
+--
+
+# ⟚
 
 --
 
@@ -384,13 +388,16 @@ Once you have the initial closure issues out of the way, the rest of the rewriti
 
 **Some more tips**
 
-Use [watchify](https://www.npmjs.org/package/watchify) instead of the browserify command to automatically **rebuild** the bundle when you change any of the code.
+Use [`watchify`](https://www.npmjs.org/package/watchify) instead of the `browserify` command to automatically **rebuild** the bundle when you change any of the code.
 
 Use the `-d` flag when developing to enable **source map** generation. Web Inspector will now show you the original file line numbers and code.
 
 ```bash
 $ watchify clientside -d -o public/bundle-debug.js
 ```
+--
+
+# ⟚
 
 --
 
@@ -430,7 +437,7 @@ But that may be asking for trouble. **What if the Node process goes down?**
 gem 'therubyracer', '~> 0.12.1'
 ```
 
-**therubyracer** (https://github.com/cowboyd/therubyracer) lets you eval JS code from inside Ruby.
+**therubyracer** (https://github.com/cowboyd/therubyracer) provides [libv8](https://code.google.com/p/v8/) bindings for Ruby and lets you eval JS code from inside your Rails app.
 
 We can use [browserify](https://browserify.org) to generate a bundle specifically for our server, containing code needed to render templates.
 
@@ -443,7 +450,6 @@ class PostController < ApplicationController
 
   def index
     posts = Post.all
-
     html = ViewRenderer.render(
       :posts => posts.map(&:public_attributes),
       :channel => 'posts',
@@ -455,7 +461,6 @@ class PostController < ApplicationController
   
   def show
     post = Post.find(params[:id])
-
     html = ViewRenderer.render(
       :post => post.public_attributes,
       :comments => post.comments.map(&:public_attributes),
@@ -488,6 +493,10 @@ class ViewRenderer
   end
 
 end
+```
+
+```ruby
+gem 'oj', '~> 2.6.1'
 ```
 --
 
@@ -610,8 +619,8 @@ domready(function(){
   var dataElement = document.getElementById('bindingData')
   var rootElement = document.getElementById('root')
 
-  var data = JSON.parse(dataElement)
-  bind(root, window.data)
+  var data = JSON.parse(dataElement.innerHTML)
+  bind(rootElement, data)
 })
 ```
 --
@@ -648,11 +657,14 @@ var shoe = require('shoe')
 
 module.exports = function(options, cb){
   var ws = shoe('http://localhost:8080/')
+
   ws.write(JSON.stringify(options))
+
   ws.on('data', function(data){
     var event = JSON.parse(data)
     cb(event)
   })
+
 }
 ```
 
@@ -712,6 +724,114 @@ $ npm run watch
 ```
 --
 
+# ⟛
+
+--
+
 # Simple Event Queue
 
-## **Existing rails app:** We want to upload data to S3 but don't want to wait for the request to finish
+## **Existing rails app:** We want to upload data to S3 but don't want client waiting for request to finish
+
+--
+
+## app/controllers/attachment_controller.rb
+
+```ruby
+class AttachmentController < ApplicationController
+  def create
+    @attachment = Attachment.new(:filename => params[:file].original_filename)
+    @attachment.save!
+    Queue.upload(params[:file], @attachment.s3_key)
+    redirect_to :back
+  end
+end
+```
+
+--
+
+## lib/queue.rb
+
+```ruby
+class Queue
+  
+  ENDPOINT = URI.parse('http://localhost:9999/queue')
+
+  def self.upload(file, s3_key)
+    data = { 
+      'action' => 'upload',
+      'local_path' => file.path, 
+      'content_type' => file.content_type,
+      's3_key' => s3_key
+    }
+
+    http = Net::HTTP::Persistent.new('node_queue')
+    http.open_timeout = 1
+    http.read_timeout = 10
+
+    req = Net::HTTP::Post.new(ENDPOINT.path, 'content-type' => 'application/json')
+    req.body = data.to_json
+
+    http.request(ENDPOINT, req)
+  end
+
+end
+```
+--
+
+## node/server.js
+
+```javascript
+var http = require('http')
+
+var queue = require('./queue')
+var jsonBody = require("body/json")
+
+var privateServer = require('http').createServer(function(req,res){
+  if (req.url === '/queue'){
+
+    jsonBody(req, function(err, body){
+      res.writeHead(200) // return immediately
+      res.end()
+      queue(JSON.parse(body))
+    })
+
+  }
+})
+
+privateServer.listen(9999, 'localhost')
+```
+--
+
+## node/queue.js
+
+```javascript
+var fs = require('fs')
+var knox = require('knox')
+
+var s3 = knox.createClient({
+  key: '<api-key-here>', secret: '<secret-here>', bucket: 'my-blog-uploads'
+})
+
+module.exports = function queue(action){
+
+  if (item.action === 'upload'){
+    fs.stat(item.local_path, function(err, stat){
+
+      var req = s3.put(item.s3_key, {
+        'Content-Length': stat.size,
+        'Content-Type': item.content_type
+      })
+
+      fs.createReadStream(item.local_path).pipe(req)
+
+    })
+  }
+
+}
+```
+--
+
+# ⚒
+
+## Hopefully this helps.
+
